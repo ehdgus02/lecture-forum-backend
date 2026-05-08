@@ -1,3 +1,5 @@
+// 우리가 만든 express 앱 내부에서 사용할 prisma의 환경 설정 / 실행에 필요한 파일
+
 import "dotenv/config";
 import { PrismaClient } from "../generated/prisma/client.ts";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";

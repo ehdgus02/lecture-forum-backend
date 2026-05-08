@@ -17,3 +17,5 @@ export default defineConfig({
         url: DATABASE_URL,
     },
 });
+
+// 프로그램을 구동시키기 전, 필요한 migrate나 generate에 필요한 환경 설정 정보 파일
