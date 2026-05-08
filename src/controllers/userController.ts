@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { UserCreateInput } from "../generated/prisma/models/User.ts";
 import userService from "../services/userService.ts";
 import passwordUtil from "../utils/password/passwordUtil.ts";
+import { LoginInputType } from "../schemas/user/login.ts";
 
 const createUser = async (req: Request, res: Response) => {
     try {
@@ -36,7 +37,6 @@ const createUser = async (req: Request, res: Response) => {
         // 응답에 들어갈 string 데이터로 newUser를 json 가공하여 넣는다
         res.status(201).json(newUser);
     } catch (error) {
-
         // 모든 에러에 대해서 처리를 해줄 순 없음.
         // 내가 처리해줄 수 있는 대표적 에러에 대해서만 대처함
         // 매개변수인 error 는 unknown 타입임
@@ -45,13 +45,13 @@ const createUser = async (req: Request, res: Response) => {
         if (error instanceof Error) {
             switch (error.message) {
                 case "ALREADY_EXISTS_USERNAME":
-                    res.status(409).json({ error: "이미 사용 중인 아이디입니다. "});
+                    res.status(409).json({ error: "이미 사용 중인 아이디입니다. " });
                     return;
                 case "ALREADY_EXISTS_EMAIL":
-                    res.status(409).json({ error: "이미 가입된 이메일입니다. "});
+                    res.status(409).json({ error: "이미 가입된 이메일입니다. " });
                     return;
                 case "ALREADY_EXISTS_NICKNAME":
-                    res.status(409).json({ "이미 사용 중인 닉네임입니다. "});
+                    res.status(409).json({ error: "이미 사용 중인 닉네임입니다." });
                     return;
                 default:
                     console.log(error);
@@ -73,6 +73,17 @@ const createUser = async (req: Request, res: Response) => {
     }
 };
 
+const login = (req: Request, res: Response) => {
+    // login 이라는 기능은, 들어온 비밀번호 값과 데이터베이스에서 조회해서 가져온 비밀번호 값을
+    // 비교해야 함.
+    // 뭔가를 Controller에서 해주기 보다, DB에 값을 가져오는게 우선되므로
+    // 그냥 service로 바로 보냄
+   const loginData: LoginInputType = req.body;
+
+    const result = userService.login(loginData);
+};
+
 export default {
     createUser,
+    login,
 };
