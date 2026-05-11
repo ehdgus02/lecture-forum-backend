@@ -50,7 +50,6 @@ const createUser = async (data: UserCreateInput) => {
 };
 
 const login = async (data: LoginInputType) => {
-    try {
     // prisma.테이블findUnique() : SELECT 명령 (단, Unique 칼럼을 통해)
     // findUnique라는 메서드는 객체 1개만 리턴
     // find라는 메서드는 Array가 리턴
@@ -67,7 +66,7 @@ const login = async (data: LoginInputType) => {
     }
 
     const isValid = await passwordUtil.verifyPassword(data.password, user.password);
-    if(!isValid) {
+    if (!isValid) {
         throw new Error("INVALID_CREDENTIALS");
     }
 
@@ -82,9 +81,12 @@ const login = async (data: LoginInputType) => {
         token,
     };
 
-    } catch (error) {
-
-    }
+    // createUser에서는
+    // 에러가 나는 부분에 에러 객체가 Prisma Error 객체였기 때문에
+    // service에서 Javascript Error 객체로 바꿔줄 필요가 있었지만,
+    //
+    // login에서는
+    // 에러를 Javascript Error 객체로 만들었기 때문에 그대로 controller로 보내도 됨
 };
 
 export default {

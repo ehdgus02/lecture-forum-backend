@@ -8,7 +8,7 @@ export const validate = (schema: ZodType) => {
     return async (req: Request, res: Response, next: NextFunction) => {
         // 실제 검증 처리를 하는 코드를 작성
         // .safeParseAsync(검증당할데이터) : 내가 작성한 조건에 부합하는지 확인하는 메서드, 비동기함수
-        const result = await schema.safeParseAsync(req.body);
+        const result = await schema.safeParseAsync(req.body);  // parse => 변환
 
         if (!result.success) {
             // result.success가 false(실패)의 경우가 여기에서 실행됨
