@@ -85,7 +85,7 @@ const login = async (req: Request, res: Response) => {
 
         res.status(200).json({
             message: "로그인에 성공했습니다.",
-            date: result,
+            data: result,
         });
     } catch (error) {
         if (error instanceof Error) {
