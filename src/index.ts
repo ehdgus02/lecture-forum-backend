@@ -3,7 +3,6 @@ import express from "express";
 import userRouter from "./routes/userRouter.ts";
 import cors from "cors";
 import adminRouter from "./routes/admin/adminRouter.ts";
-import { authenticate, requiredAdmin } from "./middlewares/auth.ts";
 
 dotenv.config();
 
