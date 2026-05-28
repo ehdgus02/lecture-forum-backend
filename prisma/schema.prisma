@@ -81,8 +81,8 @@ model Post {
   deletedAt   DateTime?
   title       String
   content     String    @db.Text
-  views       Int       @default(0)
-  option1Text String?
+  views       Int       @default(0) // null 불가
+  option1Text String? // 값이 없을 수 있다. => null 허용
   option2Text String?
 
   userId     Int
