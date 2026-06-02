@@ -12,6 +12,7 @@ router.get("/:id", checkUser, postController.getPostById);
 router.post("/create", authenticate, validate(createPostSchema), postController.createPost);
 
 router.post("/:postId/vote", authenticate, validate(votePostSchema), postController.votePost);
+router.delete("/:postId/vote", authenticate, postController.cancelVotePost);
 
 // authenticate : 로그인이 되어져 있는 사용자만 컨트롤러로 가게 하겠다 (req.user)
 // checkUser : 로그인이 되어져 있든 안 되어져있든 컨트롤러로 가게 하겠다 (req.user)
