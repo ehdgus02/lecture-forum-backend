@@ -4,6 +4,7 @@ import { Prisma } from "../generated/prisma/client.ts";
 import { LoginInputType } from "../schemas/user/login.ts";
 import passwordUtil from "../utils/password/passwordUtil.ts";
 import jwtUtil from "../utils/jwt/jwtUtil.ts";
+import { UpdateUserInputType } from "../schemas/user/updateUserSchema.ts";
 
 const createUser = async (data: UserCreateInput) => {
     try {
@@ -96,8 +97,105 @@ const login = async (data: LoginInputType) => {
     // 에러를 Javascript Error 객체로 만들었기 때문에 그대로 controller로 보내도 됨
 };
 
+const updateUser = async (userId: number, input: UpdateUserInputType) => {
+    const existUser = await prisma.user.findUnique({
+        where: {
+            id: userId,
+            deletedAt: null,
+        },
+    });
+    // SELECT * FROM user WHERE id = userId AND deletedAt IS NOT NULL;
+    if (!existUser || existUser.deletedAt) {
+        throw new Error("NOT_FOUND_USER");
+    }
+
+    // nickname에 unique : 중복값이 허용되지 않음
+
+    // nickname, email, phoneNumber
+    const existNickname = await prisma.user.findFirst({
+        where: {
+            nickname: input.nickname,
+            deletedAt: null,
+            id: {
+                not: userId,
+            },
+        },
+    });
+    if (existNickname) {
+        throw new Error("DUPLICATED_NICKNAME");
+    }
+
+    // email에 unique
+    const existEmail = await prisma.user.findFirst({
+        where: {
+            email: input.email,
+            deletedAt: null,
+            id: {
+                not: userId,
+            },
+        },
+    });
+    if (existEmail) {
+        throw new Error("DUPLICATED_EMAIL");
+    }
+
+    return prisma.user.update({
+        where: {
+            id: userId,
+        },
+        data: {
+            email: input.email,
+            nickname: input.nickname,
+            phoneNumber: input.phoneNumber ?? null,
+        },
+    });
+};
+
+const updatePassword = async (userId: number, prevPw: string, pw: string) => {
+    const user = await prisma.user.findUnique({
+        where: {
+            id: userId,
+        },
+    });
+    if (!user) {
+        throw new Error("NOT_FOUND_USER");
+    }
+
+    // prevPw 사용자가 입력한 비밀번호는 평문
+    // user.password는 암호문
+    const isPasswordValid = await passwordUtil.verifyPassword(prevPw, user.password);
+    if (!isPasswordValid) {
+        throw new Error("INVALID_PASSWORD");
+    }
+
+    const hashedPassword = await passwordUtil.hashPassword(pw);
+
+    // "지금 현재 비밀번호와 변경하려는 비밀번호가 같습니다" 라는 에러로 튕겨내려면
+    // if (hashedPassword === user.password) {
+    //     throw new Error("SAME_PASSWORD");
+    // }
+
+    // "5개월 전에 변경된 비밀번호입니다." 라는 에러로 튕겨내려면
+    // 비밀번호 히스토리를 저장하고 있는 테이블을 따로 마련해야 함
+    // 그 비밀번호 히스토리를 모두 findMany로 가져온 뒤
+    // for문을 돌려서 비교, 그 후 시간과 함께 에러 리턴
+    // 구글이 이 방식인데 이렇게 해도 문제가 되지 않는 이유는
+    // 갖고 있는 비밀번호들이 전부 다 암호화 되어 있어서 구글도 실제 비밀번호가 뭔지는 모르기 때문
+
+    return prisma.user.update({
+        where: {
+            id: userId,
+        },
+        data: {
+            password: hashedPassword,
+        },
+    });
+};
+
 export default {
     createUser,
     getUserById,
     login,
+    updateUser,
+    updatePassword,
 };
