@@ -10,6 +10,7 @@ import { withdrawUserSchema } from "../schemas/user/withdrawUserSchema.ts";
 
 const router = Router();
 
+router.get("/me", authenticate, userController.getMe);
 router.post("/create", validate(createUserSchema), userController.createUser);
 router.post("/login", validate(loginSchema), userController.login);
 router.patch("/update", authenticate, validate(updateUserSchema), userController.updateUser);
@@ -23,6 +24,6 @@ router.patch(
 // 회원탈퇴 => 실제 데이터베이스에서 그 데이터를 삭제하지 않을 것임
 //            소프트삭제를 통해 deletedAt에 탈퇴 시간을 기록하는 방식으로 처리
 //            patch로 진행해도 말이 되고, delete로 진행해도 말이 됨
-router.delete("/withdraw", authenticate, validate(withdrawUserSchema), userController.withdrawUser);
+router.patch("/withdraw", authenticate, validate(withdrawUserSchema), userController.withdrawUser);
 
 export default router;
