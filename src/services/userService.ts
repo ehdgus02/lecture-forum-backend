@@ -192,10 +192,52 @@ const updatePassword = async (userId: number, prevPw: string, pw: string) => {
     });
 };
 
+const withdrawUser = async (userId: number, password: string) => {
+    // 사용자가 존재하는지 찾고
+    // 데이터베이스에는 SELECT 구문 - findFirst, findUnique, findMany
+    // findUnique는 where절에 들어갈 수 있는게 unique 칼럼에 대해서만이기에 무조건 1개 or 0개
+    // findFirst는 where절에 들어가는게 제한 없이. 여러개의 칼럼이 선택되고, 그 중에 1개
+    const existUser = await prisma.user.findFirst({
+        where: {
+            id: userId,
+            deletedAt: null,
+        },
+    });
+    if (!existUser) {
+        throw new Error("NOT_FOUND_USER");
+    }
+
+    // 지금 들어온 비밀번호가 DB 상 사용자 비밀번호와 같은지 passwordUtil 확인
+    const isPasswordValid = await passwordUtil.verifyPassword(password, existUser.password);
+    if (!isPasswordValid) {
+        throw new Error("INVALID_PASSWORD");
+    }
+
+    // 사용자 정보에 deletedAt 현재시간으로 update
+    return prisma.user.update({
+        where: {
+            id: userId,
+        },
+        data: {
+            deletedAt: new Date(),
+        },
+    });
+};
+
+// 회원 탈퇴된 사용자의 정보는 폐기를 하는 것이 맞음
+// 회원 정보(User)라는 것은 Post, Reply, Inquiry든, 관계를 맺고 있는 다른 테이블이 있기 때문에
+// delete로 진행하지 않고 update로 처리한 것
+// 법적으로도 문제 없고, 우리의 delete를 하지 말아야 된다는 문제를 해결하려면 어떻게 해야 할까
+// 관계에 필요한 id를 제외한 나머지는 NULL로 update 하는게 맞음
+// 그렇기 때문에 User 테이블에 대한 설계할 때부터 그에 대한 고려가 필요함
+
+// 이렇게 디자인 하는 곳은 없음
+
 export default {
     createUser,
     getUserById,
     login,
     updateUser,
     updatePassword,
+    withdrawUser,
 };
